@@ -1,38 +1,59 @@
-import axios from "axios"
-import type { Ticket } from "./types"
+import axios, { AxiosInstance } from "axios";
+import type { Ticket } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+export class TicketApi {
+    private axiosInstance: AxiosInstance;
 
-if (!API_BASE_URL) {
-  console.error("NEXT_PUBLIC_API_URL is not set. Please set this environment variable.")
-}
-
-export const api = {
-  getTickets: async (): Promise<Ticket[]> => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/tickets`)
-      console.log("Resposta getTickets:", response.data)
-      return response.data
-    } catch (error) {
-      console.error("Erro no getTickets:", error)
-      throw error
+    constructor() {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+        if (!API_BASE_URL) {
+            console.error("NEXT_PUBLIC_API_URL is not set. Please set this environment variable.");
+        }
+        this.axiosInstance = axios.create({
+            baseURL: API_BASE_URL,
+        });
     }
-  },
 
-  createTicket: async (ticket: Omit<Ticket, "id" | "createdAt">): Promise<Ticket> => {
-    const response = await axios.post(`${API_BASE_URL}/tickets`, ticket)
-    console.log(response.data)
-    return response.data
-  },
+    async getTickets(): Promise<Ticket[]> {
+        try {
+            const response = await this.axiosInstance.get("/tickets");
+            console.log("Resposta getTickets:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Erro no getTickets:", error);
+            throw error;
+        }
+    }
 
-  updateTicket: async (ticket: Ticket): Promise<Ticket> => {
-    const response = await axios.put(`${API_BASE_URL}/tickets/${ticket.id}`, ticket)
-    console.log(response.data)
-    return response.data
-    
-  },
+    async createTicket(ticket: Omit<Ticket, "id" | "createdAt">): Promise<Ticket> {
+        try {
+            const response = await this.axiosInstance.post("/tickets", ticket);
+            console.log("Resposta createTicket:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Erro no createTicket:", error);
+            throw error;
+        }
+    }
 
-  deleteTicket: async (id: string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/tickets/${id}`)
-  },
+    async updateTicket(ticket: Ticket): Promise<Ticket> {
+        try {
+            const response = await this.axiosInstance.put(`/tickets/${ticket.id}`, ticket);
+            console.log("Resposta updateTicket:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Erro no updateTicket:", error);
+            throw error;
+        }
+    }
+
+    async deleteTicket(id: string): Promise<void> {
+        try {
+            await this.axiosInstance.delete(`/tickets/${id}`);
+            console.log(`Ticket com id ${id} deletado`);
+        } catch (error) {
+            console.error("Erro no deleteTicket:", error);
+            throw error;
+        }
+    }
 }

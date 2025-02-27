@@ -31,8 +31,8 @@ const formSchema = z.object({
   id: z.string(),
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  priority: z.string(),
-  status: z.string(),
+  priority: z.enum(["baixa", "média", "alta"]),
+  status: z.enum(["pendente", "em_andamento", "em_teste", "concluido"]),
   assignee: z.string().min(1, "Responsável é obrigatório"),
   createdAt: z.string(),
 })
@@ -50,6 +50,7 @@ export default function EditTicketDialog({ open, onOpenChange, onSubmit, ticket 
   }, [open, ticket, form])
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Editando chamado:", values)
     onSubmit(values)
     onOpenChange(false)
   }

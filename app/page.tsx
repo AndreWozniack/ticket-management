@@ -1,97 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { PlusCircle } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
-import KanbanBoard from "@/components/kanban-board"
-import NewTicketDialog from "@/components/new-ticket-dialog"
+import { LoginForm } from "@/components/login-form"
+import { RegisterForm } from "@/components/register-form"
 import { Button } from "@/components/ui/button"
-import type { Ticket } from "@/lib/types"
-import { TicketApi } from "@/lib/api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/components/ui/use-toast"
 
-export default function DashboardPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [open, setOpen] = useState(false)
-  const ticketApi = new TicketApi()
+export default function LoginPage() {
+  const [isLogin, setIsLogin] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
-
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        const data = await ticketApi.getTickets()
-        setTickets(data)
-      } catch (error) {
-        console.error("Erro ao buscar tickets:", error)
-      }
-    }
-    fetchTickets()
-  }, [])
-
-  async function addTicket(ticket: Omit<Ticket, "id" | "createdAt">) {
-    try {
-      const newTicket = await ticketApi.createTicket(ticket)
-      setTickets((prevTickets) => [...prevTickets, newTicket])
-    } catch (error) {
-      console.error("Erro ao criar ticket:", error)
-    }
-  }
-async function moveTicket(ticketId: string, newStatus: Ticket["status"]) {
-  try {
-    console.log("Movendo ticket:", ticketId, newStatus)
-    
-    // Se necessário, garanta que o ticketId esteja no mesmo formato dos ids dos tickets
-    const ticketToMove = tickets.find(
-      (ticket) => ticket.id.toString() === ticketId.toString()
-    )
-    console.log("Tickets:", tickets)
-    console.log("Ticket encontrado:", ticketToMove)
-    
-    if (!ticketToMove) return
-
-    // Atualiza o ticket chamando a API
-    const updatedTicket = await ticketApi.updateTicket({
-      ...ticketToMove,
-      status: newStatus,
+  const handleLogin = async (values: { email: string; password: string }) => {
+    // Aqui você deve implementar a lógica de autenticação
+    console.log("Login", values)
+    // Simulating a successful login
+    localStorage.setItem("isLoggedIn", "true")
+    toast({
+      title: "Login bem-sucedido",
+      description: "Redirecionando para o dashboard...",
     })
-    console.log("Ticket movido:", updatedTicket)
-    
-    // Atualiza o estado substituindo o ticket antigo pelo atualizado
-    setTickets((prevTickets) =>
-      prevTickets.map((ticket) =>
-        ticket.id.toString() === ticketId.toString() ? updatedTicket : ticket
-      )
-    )
-  } catch (error) {
-    console.error("Erro ao mover ticket:", error)
-    // Aqui você pode incluir uma lógica para exibir feedback visual ao usuário
-  }
-}
-
-  async function editTicket(updatedTicket: Ticket) {
-    try {
-      const ticketEdited = await ticketApi.updateTicket(updatedTicket)
-      setTickets((prevTickets) => prevTickets.map((ticket) => ticket.id === updatedTicket.id ? ticketEdited : ticket
-      )
-      )
-    } catch (error) {
-      console.error("Erro ao editar ticket:", error)
-    }
+    router.push("/dashboard")
   }
 
+  const handleRegister = async (values: { name: string; email: string; password: string }) => {
+    // Aqui você deve implementar a lógica de registro
+    console.log("Register", values)
+    toast({
+      title: "Registro bem-sucedido",
+      description: "Agora você pode fazer login.",
+    })
+    setIsLogin(true)
+  }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard de Chamados - Equipe de TI</h1>
-        <Button onClick={() => setOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Novo Chamado
-        </Button>
-      </div>
-
-      <KanbanBoard tickets={tickets} onMoveTicket={moveTicket} onEditTicket={editTicket} />
-
-      <NewTicketDialog open={open} onOpenChange={setOpen} onSubmit={addTicket} />
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-[350px]">
+        <CardHeader>
+          <CardTitle>{isLogin ? "Login" : "Cadastro"}</CardTitle>
+          <CardDescription>
+            {isLogin
+              ? "Entre com suas credenciais para acessar o sistema."
+              : "Crie uma nova conta para acessar o sistema."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLogin ? <LoginForm onSubmit={handleLogin} /> : <RegisterForm onSubmit={handleRegister} />}
+          <div className="mt-4 text-center">
+            <Button variant="link" onClick={() => setIsLogin(!isLogin)}>
+              {isLogin ? "Não tem uma conta? Cadastre-se" : "Já tem uma conta? Faça login"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
+
